@@ -26,7 +26,7 @@ def wait_for_boot(timeout_s: int = 300) -> None:
     raise SystemExit("emulator did not boot in time")
 
 
-def ui_hierarchy_with_retry(device, attempts: int = 4) -> str:
+def ui_hierarchy_with_retry(device, attempts: int = 6) -> str:
     last = None
     for _ in range(attempts):
         try:
@@ -35,7 +35,7 @@ def ui_hierarchy_with_retry(device, attempts: int = 4) -> str:
                 return xml
         except Exception as exc:  # uiautomator can race right after boot
             last = exc
-        time.sleep(5)
+        time.sleep(10)
     raise SystemExit(f"UI hierarchy unavailable: {last}")
 
 
