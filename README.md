@@ -79,7 +79,12 @@ examples/     Real-device quickstart
 
 ## Testing - and what it does and doesn't prove
 
-`python -m pytest tests/ -q` runs 30 unit tests against a scripted **fake device**: action parsing, CAPTCHA-detection handoff, payment-app gating, retry and step-limit behavior. These tests prove framework logic, **not** real-device operation - the build environment has no Android emulator (no KVM), so an end-to-end run on a live emulator/phone is still outstanding. `examples/quickstart.py` is the real-device path; contributions of recorded real-device runs are welcome.
+Two levels of automated evidence:
+
+1. **Unit tests (fake device):** `python -m pytest tests/ -q` runs 30 tests against a scripted in-memory device - action parsing, CAPTCHA-detection handoff, payment-app gating, retry and step-limit behavior.
+2. **Real emulator integration smoke test:** the `emulator-smoke` GitHub Actions workflow (free on this public repo) boots a real Android emulator and exercises `ADBDevice` end to end - boot wait, screen size, screenshot, UI hierarchy, a HOME key press and a tap. Latest passing run: https://github.com/Sivadheeraj5356/phone-use/actions/runs/40135913402
+
+Together these prove framework logic plus screenshot/UI-tree/action-level operation against a real emulator. They do **not** prove a full LLM-agent task completed end to end on a device - `examples/quickstart.py` is the path for that, and contributions of recorded real-device agent runs are welcome.
 
 ## License
 
