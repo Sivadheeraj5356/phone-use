@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "phone-use"
+version = "0.1.0"
+description = "Give AI agents a phone: Android control for LLM agents over ADB, with CAPTCHA detection and human handoff."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+
+[tool.setuptools.packages.find]
+include = ["phone_use*"]
