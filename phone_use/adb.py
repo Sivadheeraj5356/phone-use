@@ -86,10 +86,21 @@ class ADBDevice:
         return int(m.group(1)), int(m.group(2))
 
     def ui_hierarchy_xml(self) -> str:
-        """Accessibility UI tree via uiautomator - text, ids, bounds."""
+        """Accessibility UI tree via uiautomator - text, ids, bounds.
+
+        Tries ``uiautomator dump /dev/tty`` over exec-out first (no file
+        round-trip on the device), falling back to the /sdcard file
+        method. Both raise ADBError when uiautomator itself fails.
+        """
+        text = self._exec_out("uiautomator", "dump", "/dev/tty",
+                              timeout=30).decode("utf-8", "replace")
+        start = text.find("<hierarchy")
+        end = text.rfind("</hierarchy>")
+        if start != -1 and end != -1:
+            return text[start:end + len("</hierarchy>")]
         self._shell("uiautomator", "dump", "/sdcard/__phone_use_window.xml",
-                    timeout=20)
-        return self._shell("cat", "/sdcard/__phone_use_window.xml", timeout=20)
+                    timeout=30)
+        return self._shell("cat", "/sdcard/__phone_use_window.xml", timeout=30)
 
     def foreground_app(self) -> str:
         out = self._shell("dumpsys", "window", "displays", timeout=20)
