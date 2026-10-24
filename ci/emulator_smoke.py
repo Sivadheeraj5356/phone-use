@@ -39,6 +39,17 @@ def ui_hierarchy_with_retry(device, attempts: int = 4) -> str:
     raise SystemExit(f"UI hierarchy unavailable: {last}")
 
 
+def screenshot_with_retry(device, attempts: int = 3) -> bytes:
+    last = None
+    for _ in range(attempts):
+        try:
+            return device.screenshot_png()
+        except Exception as exc:  # first screencap can race the display
+            last = exc
+            time.sleep(10)
+    raise SystemExit(f"screenshot failed after {attempts} attempts: {last}")
+
+
 def main() -> None:
     wait_for_boot()
     subprocess.run(["adb", "shell", "input", "keyevent", "KEYCODE_WAKEUP"],
@@ -46,7 +57,7 @@ def main() -> None:
     device = ADBDevice()
     width, height = device.screen_size()
     assert width > 0 and height > 0, f"bad screen size {width}x{height}"
-    shot = device.screenshot_png()
+    shot = screenshot_with_retry(device)
     assert shot.startswith(b"\x89PNG"), "screenshot is not a PNG"
     xml = ui_hierarchy_with_retry(device)
     device.key("HOME")
