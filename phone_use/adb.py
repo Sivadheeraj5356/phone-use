@@ -31,7 +31,10 @@ def _run_adb(args: List[str], serial: Optional[str], timeout: int = 30,
     if serial:
         cmd += ["-s", serial]
     cmd += args
-    proc = subprocess.run(cmd, capture_output=True, timeout=timeout)
+    try:
+        proc = subprocess.run(cmd, capture_output=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        raise ADBError(f"adb {' '.join(args)} timed out after {timeout}s")
     if proc.returncode != 0:
         stderr = proc.stderr.decode("utf-8", "replace").strip()
         raise ADBError(f"adb {' '.join(args)} failed: {stderr or 'exit %d' % proc.returncode}")
@@ -64,9 +67,13 @@ class ADBDevice:
         return _run_adb(["exec-out", *args], self.serial, timeout, binary=binary)
 
     # -- perception --------------------------------------------------------
-    def screenshot_png(self) -> bytes:
-        """Raw PNG bytes of the current screen."""
-        data = self._exec_out("screencap", "-p", timeout=15, binary=True)
+    def screenshot_png(self, timeout: int = 60) -> bytes:
+        """Raw PNG bytes of the current screen.
+
+        The default 60s timeout covers the slow first screencap on a
+        freshly booted emulator.
+        """
+        data = self._exec_out("screencap", "-p", timeout=timeout, binary=True)
         if not data.startswith(b"\x89PNG"):
             raise ADBError("screencap did not return a PNG")
         return data
